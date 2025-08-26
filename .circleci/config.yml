@@ -3,7 +3,7 @@ version: 2.1
 orbs:
   node: circleci/node@5.0.1
   docker: circleci/docker@2.1.4
-jobs: # Added to group build and test jobs
+jobs:
   build:
     docker:
       - image: cimg/node:16.10
@@ -22,13 +22,13 @@ jobs: # Added to group build and test jobs
       - node/install-packages:
           pkg-manager: npm
       - run:
-          command: | # Use pipe for multi-line command
+          command: |
             echo "Running tests..."
             npm run test
 workflows:
   simple_workflow:
-  jobs:
-    - build # Run build job first
-    - test: # Run test job after build
-      requires:
-        - build # test depends on build
+    jobs:
+      - build
+      - test:
+          requires:
+            - build
