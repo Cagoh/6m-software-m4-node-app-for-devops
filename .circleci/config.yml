@@ -6,19 +6,12 @@ orbs:
 # Each job has 2 parts - 1. Executor, 2. Steps
 jobs:
   build:
-    # Means spin up a container using node:16.10 and run the steps
     docker:
       - image: cimg/node:16.10
     steps:
       - checkout
-      # Using node/install-packages is better than npm install
-      # because it gives you CircleCI optimization (caching, lockfile, concise)
       - node/install-packages:
           pkg-manager: npm
-      # Without orbs, we have to run everything manually using run
-      # - run: |
-      #     echo "Installing dependencies"
-      #     npm install
   test:
     docker:
       - image: cimg/node:16.10
@@ -29,11 +22,28 @@ jobs:
       - run: |
           echo "Running tests..."
           npm run test
+  build-and-push:
+    docker:
+      - image: cimg/base:stable
+    steps:
+      - checkout
+      - setup_remote_docker:
+          version: 20.10.14
+      - docker/install-docker
+      - docker/build:
+          image: education-space/flask-app
+          tag: latest
+      - docker/push:
+          image: education-space/flask-app
+          tag: latest
 # Define the workflow for job execution order
 workflows:
   simple_workflow:
     jobs:
-      - build # Run build job first
-      - test: # Run test job after build
+      - build
+      - test:
           requires:
-            - build # test depends on build
+            - build
+      - build-and-push:
+          requires:
+            - test
